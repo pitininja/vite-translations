@@ -1,0 +1,42 @@
+{
+    "name": "@pitininja/vite-translations",
+    "version": "1.0.0",
+    "license": "AGPL-3.0-or-later",
+    "homepage": "https://github.com/pitininja/vite-translations",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/pitininja/vite-translations"
+    },
+    "type": "module",
+    "files": [
+        "./dist",
+        "./types",
+        "./LICENSE",
+        "./package.json",
+        "./README.md"
+    ],
+    "main": "./dist/index.js",
+    "types": "./types/types.d.ts",
+    "scripts": {
+        "prepare": "[ -d '.husky' ] && husky || true",
+        "build": "tsc --build --clean tsconfig.json && tsc -b ./tsconfig.json",
+        "lint": "npx eslint . --ext=.js,.ts --max-warnings=0 && npx prettier --check . && npx tsc --noEmit",
+        "format": "npx eslint . --fix --ext=.js,.ts --max-warnings=0 && npx prettier --write . && npx tsc --noEmit"
+    },
+    "devDependencies": {
+        "@tsconfig/recommended": "^1.0.6",
+        "@types/node": "^20.12.7",
+        "@typescript-eslint/eslint-plugin": "^7.7.0",
+        "@typescript-eslint/parser": "^7.7.0",
+        "@vitejs/plugin-react": "^4.2.1",
+        "eslint": "^8.57.0",
+        "eslint-config-airbnb-base": "^15.0.0",
+        "eslint-config-airbnb-typescript": "^18.0.0",
+        "eslint-config-prettier": "^9.1.0",
+        "eslint-plugin-import": "^2.29.1",
+        "husky": "^9.0.11",
+        "prettier": "^3.2.5",
+        "typescript": "^5.4.5",
+        "vite": "^5.2.10"
+    }
+}
