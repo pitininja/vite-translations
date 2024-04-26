@@ -172,7 +172,13 @@ const getTranslation = (
     }
 };
 
+const isFileWithinDir = (filePath: string, dirPath: string) => {
+    const relative = path.relative(dirPath, filePath);
+    return relative && !relative.startsWith('..') && !path.isAbsolute(relative);
+};
+
 export default function translationsPlugin({ dir }: { dir: string }): Plugin {
+    const absoluteDir = path.resolve(dir);
     const virtualModuleId = '@pitininja/vite-translations-client';
     const resolvedVirtualModuleId = `\0${virtualModuleId}`;
     return {
@@ -187,7 +193,7 @@ export default function translationsPlugin({ dir }: { dir: string }): Plugin {
             try {
                 if (id === resolvedVirtualModuleId) {
                     const sourceTranslationFiles =
-                        await getSourceTranslationFiles(dir);
+                        await getSourceTranslationFiles(absoluteDir);
                     const translationsData = buildTranslations(
                         sourceTranslationFiles
                     );
@@ -203,6 +209,27 @@ export default function translationsPlugin({ dir }: { dir: string }): Plugin {
                     `${logPrefix} Error while running plugin : ${err.message}`
                 );
             }
+        },
+        async handleHotUpdate({ file, server }) {
+            const fileName = path.basename(file);
+            if (
+                isFileWithinDir(file, absoluteDir) &&
+                translationFileNamesMap.has(fileName)
+            ) {
+                const mod = server.moduleGraph.getModuleById(
+                    resolvedVirtualModuleId
+                );
+                if (mod) {
+                    server.moduleGraph.invalidateModule(mod);
+                    const updatedMod = server.moduleGraph.getModuleById(
+                        resolvedVirtualModuleId
+                    );
+                    if (updatedMod) {
+                        return [updatedMod];
+                    }
+                }
+            }
+            return undefined;
         }
     };
 }

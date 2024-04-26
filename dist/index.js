@@ -118,7 +118,12 @@ const getTranslation = (locale, key, type, data) => {
         return '';
     }
 };
+const isFileWithinDir = (filePath, dirPath) => {
+    const relative = path.relative(dirPath, filePath);
+    return relative && !relative.startsWith('..') && !path.isAbsolute(relative);
+};
 export default function translationsPlugin({ dir }) {
+    const absoluteDir = path.resolve(dir);
     const virtualModuleId = '@pitininja/vite-translations-client';
     const resolvedVirtualModuleId = `\0${virtualModuleId}`;
     return {
@@ -132,7 +137,7 @@ export default function translationsPlugin({ dir }) {
         async load(id) {
             try {
                 if (id === resolvedVirtualModuleId) {
-                    const sourceTranslationFiles = await getSourceTranslationFiles(dir);
+                    const sourceTranslationFiles = await getSourceTranslationFiles(absoluteDir);
                     const translationsData = buildTranslations(sourceTranslationFiles);
                     return `
                         const translations = ${JSON.stringify(translationsData)};
@@ -145,6 +150,20 @@ export default function translationsPlugin({ dir }) {
             catch (err) {
                 throw new Error(`${logPrefix} Error while running plugin : ${err.message}`);
             }
+        },
+        async handleHotUpdate({ file, server }) {
+            const fileName = path.basename(file);
+            if (isFileWithinDir(file, absoluteDir) && translationFileNamesMap.has(fileName)) {
+                const mod = server.moduleGraph.getModuleById(resolvedVirtualModuleId);
+                if (mod) {
+                    server.moduleGraph.invalidateModule(mod);
+                    const updatedMod = server.moduleGraph.getModuleById(resolvedVirtualModuleId);
+                    if (updatedMod) {
+                        return [updatedMod];
+                    }
+                }
+            }
+            return undefined;
         }
     };
 }
