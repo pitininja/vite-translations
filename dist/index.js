@@ -153,7 +153,8 @@ export default function translationsPlugin({ dir }) {
         },
         async handleHotUpdate({ file, server }) {
             const fileName = path.basename(file);
-            if (isFileWithinDir(file, absoluteDir) && translationFileNamesMap.has(fileName)) {
+            if (isFileWithinDir(file, absoluteDir) &&
+                translationFileNamesMap.has(fileName)) {
                 const mod = server.moduleGraph.getModuleById(resolvedVirtualModuleId);
                 if (mod) {
                     server.moduleGraph.invalidateModule(mod);
