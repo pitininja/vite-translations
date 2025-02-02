@@ -1,12 +1,12 @@
-import fs, { type Dirent } from 'fs';
-import { type Plugin } from 'vite';
-import path from 'path';
+import fs, { type Dirent } from 'node:fs';
+import path from 'node:path';
+import type { Plugin } from 'vite';
 
-import {
-    type LocaleTranslations,
-    type Translations,
-    type Locale,
-    type LocaleTranslation
+import type {
+    Locale,
+    LocaleTranslation,
+    LocaleTranslations,
+    Translations
 } from '@pitininja/vite-translations-client';
 
 const locales: Locale[] = ['en', 'fr'];
@@ -53,13 +53,13 @@ const readJsonFileRecursively = async (
     });
     const jsonFileEntries: Dirent[] = [];
     const dirEntries: Dirent[] = [];
-    entries.forEach((entry) => {
+    for (const entry of entries) {
         if (entry.isFile() && translationFileNamesMap.has(entry.name)) {
             jsonFileEntries.push(entry);
         } else if (entry.isDirectory()) {
             dirEntries.push(entry);
         }
-    });
+    }
     const sourceTranslations = await Promise.all(
         jsonFileEntries.map((file) => jsonFileReader(dir, file))
     );
@@ -78,10 +78,12 @@ const getSourceTranslationFiles = async (
         await fs.promises.access(dir, fs.constants.R_OK);
         const sourceTranslationFiles = await readJsonFileRecursively(dir);
         return sourceTranslationFiles;
-    } catch (err: any) {
-        throw new Error(
-            `${logPrefix} Error while reading JSON files: ${err.message}`
-        );
+    } catch (err: unknown) {
+        let message = `${logPrefix} Error while reading JSON files`;
+        if (err instanceof Error) {
+            message = `${message}: ${err.message}`;
+        }
+        throw new Error(message);
     }
 };
 
@@ -94,7 +96,7 @@ const compileTranslationObject = (
 ): LocaleTranslations => {
     if (translationObject && typeof translationObject === 'object') {
         let compiled: LocaleTranslations = {};
-        Object.entries(translationObject).forEach(([key, val]) => {
+        for (const [key, val] of Object.entries(translationObject)) {
             const prefixedKey = `${prefix ?? ''}${key}`;
             if (typeof val === 'string') {
                 compiled[prefixedKey] = {
@@ -108,7 +110,7 @@ const compileTranslationObject = (
                     ...compileTranslationObject(val, `${prefixedKey}.`)
                 };
             }
-        });
+        }
         return compiled;
     }
     throw new Error('JSON file content is not an object');
@@ -120,7 +122,7 @@ const buildTranslations = (
     const built: Translations = {
         ...defaultTranslations
     };
-    sourceFiles.forEach(({ path: filePath, locale, content }) => {
+    for (const { path: filePath, locale, content } of sourceFiles) {
         try {
             const obj = JSON.parse(content);
             const compiled = compileTranslationObject(obj);
@@ -128,12 +130,14 @@ const buildTranslations = (
                 ...built[locale],
                 ...compiled
             };
-        } catch (err: any) {
-            throw new Error(
-                `${logPrefix} Error while building translations from file ${filePath} : ${err.message}`
-            );
+        } catch (err: unknown) {
+            let message = `${logPrefix} Error while building translations from file ${filePath}`;
+            if (err instanceof Error) {
+                message = `${message}: ${err.message}`;
+            }
+            throw new Error(message);
         }
-    });
+    }
     return built;
 };
 
@@ -160,14 +164,14 @@ const getTranslation = (
         }
         if (data) {
             let replaced = translation[type];
-            Object.entries(data).forEach(([name, text]) => {
+            for (const [name, text] of Object.entries(data)) {
                 replaced = replaced.replaceAll(`{${name}}`, text);
-            });
+            }
             return replaced;
         }
         return translation[type];
-    } catch (err: any) {
-        console.error(err.message); // eslint-disable-line no-console
+    } catch (err: unknown) {
+        console.error(err instanceof Error ? err.message : err);
         return '';
     }
 };
@@ -204,13 +208,15 @@ export default function translationsPlugin({ dir }: { dir: string }): Plugin {
                     `;
                 }
                 return undefined;
-            } catch (err: any) {
-                throw new Error(
-                    `${logPrefix} Error while running plugin : ${err.message}`
-                );
+            } catch (err: unknown) {
+                let message = `${logPrefix} Error while running plugin`;
+                if (err instanceof Error) {
+                    message = `${message}: ${err.message}`;
+                }
+                throw new Error(message);
             }
         },
-        async handleHotUpdate({ file, server }) {
+        handleHotUpdate({ file, server }) {
             const fileName = path.basename(file);
             if (
                 isFileWithinDir(file, absoluteDir) &&
