@@ -1,11 +1,11 @@
 {
     "name": "@pitininja/vite-translations",
-    "version": "1.2.0",
+    "version": "1.2.1",
     "license": "AGPL-3.0-or-later",
-    "homepage": "https://github.com/pitininja/vite-translations",
+    "homepage": "https://codeberg.org/pitininja/vite-translations",
     "repository": {
         "type": "git",
-        "url": "https://github.com/pitininja/vite-translations"
+        "url": "https://codeberg.org/pitininja/vite-translations"
     },
     "type": "module",
     "files": [
@@ -26,10 +26,10 @@
     "devDependencies": {
         "@biomejs/biome": "^1.9.4",
         "@tsconfig/recommended": "^1.0.8",
-        "@types/node": "^22.13.4",
-        "@vitejs/plugin-react": "^4.3.4",
+        "@types/node": "^22.15.19",
+        "@vitejs/plugin-react": "^4.4.1",
         "husky": "^9.1.7",
-        "typescript": "^5.7.3",
-        "vite": "^6.1.1"
+        "typescript": "^5.8.3",
+        "vite": "^6.3.5"
     }
 }
